@@ -74,24 +74,24 @@ class Track(context: Context, magnet: String, name: String, private val index: I
     public fun handleDownloadProgress(torrent: Torrent, status: StreamStatus) {
         musicService.progressBar.progress = status.progress.toInt()
         musicService.bufferInfo.text = "Selected: ${torrent.videoFile.nameWithoutExtension}, buffer progress: ${status.bufferProgress}%"
-//        var finalFileSize = torrent.torrentHandle.torrentFile().files().fileSize(index)
-//        var intermediateSize = finalFileSize
-//        finalFileSize -= (finalFileSize % BLOCK_SIZE)
-//        var index = 0
-//        while (intermediateSize - BLOCK_SIZE >= 0) {TODO
-//            index++
-//            intermediateSize -= BLOCK_SIZE
-//            if (torrent.hasBytes(intermediateSize)) {
-//                this.seekProgress.setSquareDownloaded(index)
-//            }
-//        }
+        var finalFileSize = torrent.torrentHandle.torrentFile().files().fileSize(index)
+        var intermediateSize = finalFileSize
+        finalFileSize -= (finalFileSize % BLOCK_SIZE)
+        var index = 0
+        while (intermediateSize - BLOCK_SIZE >= 0) {
+            index++
+            intermediateSize -= BLOCK_SIZE
+            if (torrent.hasBytes(intermediateSize)) {
+//                this.seekProgress.setSquareDownloaded(index)TODO
+            }
+        }
 //        torrent.setInterestedBytes((interestedFraction * finalFileSize).toLong())TODO future work: set interested fraction. Needs testing
-//        if (status.bufferProgress < 100) {
-//            this.bufferInfo.text =
-//                "Downloading torrent: ${torrent.videoFile.name}\n Torrent state: BUFFERING\n ${status.bufferProgress}%"
-//        } else {
-//            this.bufferInfo.text =
-//                "Downloading torrent: ${torrent.videoFile.name}\n Torrent state: STREAM READY\n Total file progress: ${status.progress}%"
-//        }
+        if (status.bufferProgress < 100) {
+            this.bufferInfo.text =
+                "Downloading torrent: ${torrent.videoFile.name}\n Torrent state: BUFFERING\n ${status.bufferProgress}%"
+        } else {
+            this.bufferInfo.text =
+                "Downloading torrent: ${torrent.videoFile.name}\n Torrent state: STREAM READY\n Total file progress: ${status.progress}%"
+        }
     }
 }
