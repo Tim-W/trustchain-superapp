@@ -9,6 +9,7 @@ import android.widget.TextView
 import com.github.se_bastiaan.torrentstream.StreamStatus
 import com.github.se_bastiaan.torrentstream.Torrent
 import com.github.se_bastiaan.torrentstream.listeners.TorrentListener
+import com.github.se_bastiaan.torrentstreamserver.TorrentServerListener
 import kotlinx.android.synthetic.main.music_app_main.*
 import nl.tudelft.ipv8.attestation.trustchain.TrustChainTransaction
 
@@ -21,7 +22,7 @@ class Release(
     private val musicService: MusicService,
     transaction: TrustChainTransaction
 ) : TableLayout(context),
-    TorrentListener {
+    TorrentServerListener {
     private var tracks: MutableList<Track> = mutableListOf<Track>()
     private var currentFileIndex = -1
     private var fetchingMetadataRow = TableRow(context)
@@ -65,7 +66,7 @@ class Release(
         // When the Release is added, it will try to fetch the metadata for the corresponding magnet
         try {
             musicService.localStreamingServer.startStream(magnet)
-//            musicService.torrentStream?.addListener(this)
+            musicService.localStreamingServer.addListener(this)
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -113,6 +114,7 @@ class Release(
         println("Stream prepared")
         this.removeView(fetchingMetadataRow)
         this.torrent = torrent
+//        musicService.localStreamingServer.
         torrent.fileNames?.forEachIndexed { index, fileName ->
             val allowedExtensions =
                 listOf<String>("flac", "mp3", "3gp", "aac", "mkv", "wav", "ogg", "mp4", "m4a")
@@ -145,6 +147,10 @@ class Release(
         if (currentFileIndex == -1) return
         val track = tracks[currentFileIndex]
         track.handleDownloadProgress(torrent, status)
+    }
+
+    override fun onServerReady(url: String?) {
+        println("Server ready at $url")
     }
 
     override fun onStreamError(torrent: Torrent, e: Exception) {

@@ -27,7 +27,7 @@ class TorrentStreamHTTPServer: TorrentServerListener {
     }
 
     override fun onServerReady(url: String?) {
-        println("Server ready")
+        println("Server ready at $url")
     }
 
     override fun onStreamError(torrent: Torrent?, e: Exception?) {

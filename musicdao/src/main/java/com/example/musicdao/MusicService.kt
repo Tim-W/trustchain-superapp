@@ -77,11 +77,11 @@ class MusicService : BaseActivity() {
             .saveLocation("$cacheDir/server")
             .removeFilesAfterStop(true)
             .build()
+
         localStreamingServer.setTorrentOptions(torrentOptions)
         localStreamingServer.setServerHost("127.0.0.1")
         localStreamingServer.setServerPort(8080)
         localStreamingServer.startTorrentStream()
-        localStreamingServer.addListener(TorrentStreamHTTPServer())
     }
 
     private fun initTrustChain() {
