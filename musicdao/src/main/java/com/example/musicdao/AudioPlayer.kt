@@ -10,7 +10,10 @@ import android.widget.SeekBar
 import android.widget.Toast
 import androidx.core.net.toUri
 import kotlinx.android.synthetic.main.music_app_main.*
+import kotlinx.android.synthetic.main.music_app_main.view.*
 import java.io.File
+import java.io.FileInputStream
+import java.io.InputStream
 
 lateinit var instance: AudioPlayer
 
@@ -91,7 +94,7 @@ class AudioPlayer(context: Context, private val musicService: MusicService) : Li
         playButton.isEnabled = false
     }
 
-    fun setAudioResource(file: File) {
+    fun setAudioResource(url: String) {
         prepareNextTrack()
         mediaPlayer.reset()
         mediaPlayer.apply {
@@ -102,7 +105,7 @@ class AudioPlayer(context: Context, private val musicService: MusicService) : Li
                     .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .build()
             )
-            setDataSource(context, file.toUri())
+            setDataSource(url)
             prepareAsync()
         }
     }

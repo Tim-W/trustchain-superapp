@@ -7,9 +7,11 @@ import android.text.Editable
 import android.util.Log
 import android.widget.Toast
 import com.example.musicdao.ipv8.MusicDemoCommunity
+import com.example.musicdao.localserver.TorrentStreamHTTPServer
 import com.example.musicdao.ui.SubmitReleaseDialog
 import com.github.se_bastiaan.torrentstream.TorrentOptions
 import com.github.se_bastiaan.torrentstream.TorrentStream
+import com.github.se_bastiaan.torrentstreamserver.TorrentStreamServer
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import kotlinx.android.synthetic.main.music_app_main.*
 import nl.tudelft.ipv8.IPv8Configuration
@@ -25,7 +27,6 @@ import nl.tudelft.ipv8.sqldelight.Database
 import nl.tudelft.ipv8.util.hexToBytes
 import nl.tudelft.ipv8.util.toHex
 import nl.tudelft.trustchain.common.BaseActivity
-import java.lang.Exception
 
 const val PREPARE_SIZE_KB: Long = 10 * 512L
 
@@ -35,6 +36,7 @@ class MusicService : BaseActivity() {
         "magnet:?xt=urn:btih:9316f06e8572ed5cb6f5aa602d019cb9c1a5e40c&dn=gd1990-12-12.149736.UltraMatrix.sbd.cm.miller.flac16"
     private val trackLibrary: TrackLibrary =
         TrackLibrary()
+    public val localStreamingServer: TorrentStreamServer = TorrentStreamServer.getInstance()
     var torrentStream: TorrentStream? = null
 
     override val navigationGraph = R.navigation.musicdao_navgraph
@@ -67,6 +69,19 @@ class MusicService : BaseActivity() {
             trackLibrary.startDHT()
         }).start()
         iterateClientConnectivity()
+        initLocalStreamingService()
+    }
+
+    private fun initLocalStreamingService() {
+        val torrentOptions: TorrentOptions = TorrentOptions.Builder()
+            .saveLocation("$cacheDir/server")
+            .removeFilesAfterStop(true)
+            .build()
+        localStreamingServer.setTorrentOptions(torrentOptions)
+        localStreamingServer.setServerHost("127.0.0.1")
+        localStreamingServer.setServerPort(8080)
+        localStreamingServer.startTorrentStream()
+        localStreamingServer.addListener(TorrentStreamHTTPServer())
     }
 
     private fun initTrustChain() {

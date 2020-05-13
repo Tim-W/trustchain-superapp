@@ -65,4 +65,8 @@ dependencies {
     implementation('com.github.TorrentStream:TorrentStream-Android:2.5.0') {
         exclude group: 'com.frostwire'
     }
+    implementation('com.github.se-bastiaan:TorrentStreamServer-Android:1.0.6') {
+        exclude group: 'com.frostwire'
+        exclude group: 'com.github.TorrentStream', module: 'TorrentStream-Android'
+    }
 }

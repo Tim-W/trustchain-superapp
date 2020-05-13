@@ -64,8 +64,8 @@ class Release(
 
         //When the Release is added, it will try to fetch the metadata for the corresponding magnet
         try {
-            musicService.torrentStream?.startStream(magnet)
-            musicService.torrentStream?.addListener(this)
+            musicService.localStreamingServer.startStream(magnet)
+//            musicService.torrentStream?.addListener(this)
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -87,7 +87,7 @@ class Release(
                 musicService.fillProgressBar()
                 musicService.bufferInfo.text =
                     "Selected: ${torrent.videoFile.nameWithoutExtension}, buffer progress: 100%"
-                AudioPlayer.getInstance(context, musicService).setAudioResource(torrent.videoFile)
+                AudioPlayer.getInstance(context, musicService).setAudioResource(musicService.localStreamingServer.currentStreamUrl)
             } else {
                 musicService.resetProgressBar()
                 torrent.startDownload()
@@ -101,7 +101,7 @@ class Release(
      */
     override fun onStreamReady(torrent: Torrent) {
         println("Stream ready")
-        AudioPlayer.getInstance(context, musicService).setAudioResource(torrent.videoFile)
+        AudioPlayer.getInstance(context, musicService).setAudioResource(musicService.localStreamingServer.currentStreamUrl)
     }
 
     /**
