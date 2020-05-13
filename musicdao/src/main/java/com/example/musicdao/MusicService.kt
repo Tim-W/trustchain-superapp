@@ -2,10 +2,10 @@ package com.example.musicdao
 
 import android.content.Intent
 import android.os.Bundle
-import android.preference.PreferenceManager
 import android.text.Editable
 import android.util.Log
 import android.widget.Toast
+import androidx.preference.PreferenceManager
 import com.example.musicdao.ipv8.MusicDemoCommunity
 import com.example.musicdao.localserver.TorrentStreamHTTPServer
 import com.example.musicdao.ui.SubmitReleaseDialog
@@ -108,12 +108,12 @@ class MusicService : BaseActivity() {
     }
 
     private fun initTorrentStreamService(): TorrentStream {
-        val prepareSize: Long = PREPARE_SIZE_KB * 1024L
+//        val prepareSize: Long = PREPARE_SIZE_KB * 1024L
         val torrentOptions: TorrentOptions = TorrentOptions.Builder()
             .saveLocation(applicationContext.cacheDir)
             .autoDownload(false)
-            //PrepareSize: Starts playing the song after PREPARE_SIZE_MB megabytes are buffered.
-            //TODO Requires testing and tweaking to find the best number
+            // PrepareSize: Starts playing the song after PREPARE_SIZE_MB megabytes are buffered.
+            // TODO Requires testing and tweaking to find the best number
 //            .prepareSize(prepareSize)
             .removeFilesAfterStop(true)
             .build()
@@ -177,8 +177,8 @@ class MusicService : BaseActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         val uri = data?.data
         if (uri != null) {
-            //This should be reached when the chooseFile intent is completed and the user selected
-            //an audio file
+            // This should be reached when the chooseFile intent is completed and the user selected
+            // an audio file
             val magnet = trackLibrary.seedFile(applicationContext, uri)
             publishTrack(magnet)
         }
