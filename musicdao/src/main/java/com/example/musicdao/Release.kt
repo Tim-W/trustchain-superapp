@@ -38,9 +38,11 @@ class Release(
         )
         val blockMetadata = TextView(context)
         blockMetadata.text =
-            Html.fromHtml("Signed block with release:<br>$transaction\n<br><b>" +
-                "${transaction["artists"]} - ${transaction["title"]}<br>" +
-                "Released at ${transaction["date"]}</b>", 0)
+            Html.fromHtml(
+                "Signed block with release:<br>$transaction\n<br><b>" +
+                    "${transaction["artists"]} - ${transaction["title"]}<br>" +
+                    "Released at ${transaction["date"]}</b>", 0
+            )
         blockMetadata.layoutParams = TableRow.LayoutParams(
             TableRow.LayoutParams.MATCH_PARENT,
             TableRow.LayoutParams.WRAP_CONTENT
@@ -65,8 +67,9 @@ class Release(
 
         // When the Release is added, it will try to fetch the metadata for the corresponding magnet
         try {
-            musicService.localStreamingServer.startStream(magnet)
+            musicService.localStreamingServer.startTorrentStream()
             musicService.localStreamingServer.addListener(this)
+            musicService.localStreamingServer.startStream(magnet)
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -88,7 +91,8 @@ class Release(
                 musicService.fillProgressBar()
                 musicService.bufferInfo.text =
                     "Selected: ${torrent.videoFile.nameWithoutExtension}, buffer progress: 100%"
-                AudioPlayer.getInstance(context, musicService).setAudioResource(musicService.localStreamingServer.currentStreamUrl)
+                val streamUrl = musicService.localStreamingServer.currentStreamUrl ?: throw Error("Stream URL is null")
+                AudioPlayer.getInstance(context, musicService).setAudioResource(streamUrl)
             } else {
                 musicService.resetProgressBar()
                 torrent.startDownload()
@@ -102,7 +106,8 @@ class Release(
      */
     override fun onStreamReady(torrent: Torrent) {
         println("Stream ready")
-        AudioPlayer.getInstance(context, musicService).setAudioResource(musicService.localStreamingServer.currentStreamUrl)
+        val streamUrl = musicService.localStreamingServer.currentStreamUrl ?: throw Error("Stream URL is null")
+        AudioPlayer.getInstance(context, musicService).setAudioResource(streamUrl)
     }
 
     /**
@@ -114,7 +119,6 @@ class Release(
         println("Stream prepared")
         this.removeView(fetchingMetadataRow)
         this.torrent = torrent
-//        musicService.localStreamingServer.
         torrent.fileNames?.forEachIndexed { index, fileName ->
             val allowedExtensions =
                 listOf<String>("flac", "mp3", "3gp", "aac", "mkv", "wav", "ogg", "mp4", "m4a")

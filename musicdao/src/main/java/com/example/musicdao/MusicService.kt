@@ -7,6 +7,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.preference.PreferenceManager
 import com.example.musicdao.ipv8.MusicDemoCommunity
+import com.example.musicdao.localserver.TorrentStreamAudioServer
 import com.example.musicdao.localserver.TorrentStreamHTTPServer
 import com.example.musicdao.ui.SubmitReleaseDialog
 import com.github.se_bastiaan.torrentstream.TorrentOptions
@@ -33,10 +34,10 @@ const val PREPARE_SIZE_KB: Long = 10 * 512L
 class MusicService : BaseActivity() {
     private var currentMagnetLoading: String? = null
     private val defaultTorrent =
-        "magnet:?xt=urn:btih:9316f06e8572ed5cb6f5aa602d019cb9c1a5e40c&dn=gd1990-12-12.149736.UltraMatrix.sbd.cm.miller.flac16"
+        "magnet:?xt=urn:btih:9e03c20d0147c30cc813f7ece1829e8f9c77f844&dn=Mary%20Wells%20-%20Looking%20Back%201961-1964%20%281993%29%20%28320%29&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&tr=udp%3A%2F%2F9.rarbg.to%3A2710%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.tiny-vps.com%3A6969%2Fannounce&tr=udp%3A%2F%2Fopen.demonii.si%3A1337%2Fannounce&tr=udp%3A%2F%2Fp4p.arenabg.com%3A1337%2Fannounce&tr=udp%3A%2F%2Fzephir.monocul.us%3A6969%2Fannounce&tr=udp%3A%2F%2Fopentor.org%3A2710%2Fannounce&tr=udp%3A%2F%2Ftracker.zerobytes.xyz%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fretracker.lanta-net.ru%3A2710%2Fannounce&tr=udp%3A%2F%2Ftracker.zer0day.to%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fcoppersurfer.tk%3A6969%2Fannounce"
     private val trackLibrary: TrackLibrary =
         TrackLibrary()
-    public val localStreamingServer: TorrentStreamServer = TorrentStreamServer.getInstance()
+    public val localStreamingServer: TorrentStreamAudioServer = TorrentStreamAudioServer.getInstance()
     var torrentStream: TorrentStream? = null
 
     override val navigationGraph = R.navigation.musicdao_navgraph
@@ -81,7 +82,6 @@ class MusicService : BaseActivity() {
         localStreamingServer.setTorrentOptions(torrentOptions)
         localStreamingServer.setServerHost("127.0.0.1")
         localStreamingServer.setServerPort(8080)
-        localStreamingServer.startTorrentStream()
     }
 
     private fun initTrustChain() {
