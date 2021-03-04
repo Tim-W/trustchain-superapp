@@ -97,7 +97,7 @@ class MusicService : AppCompatActivity() {
         }
     }
 
-    private fun startup() {
+    fun startup() {
         val ses = SessionManager()
         ses.start()
         registerBlockSigner()
@@ -159,7 +159,7 @@ class MusicService : AppCompatActivity() {
     /**
      * Keep track of Swarm Health for all torrents being monitored
      */
-    private fun iterativelyUpdateSwarmHealth() {
+    fun iterativelyUpdateSwarmHealth() {
         lifecycleScope.launchWhenStarted {
             while (isActive) {
                 swarmHealthMap = filterSwarmHealthMap()
@@ -175,9 +175,10 @@ class MusicService : AppCompatActivity() {
     /**
      * Merge local and remote swarm health map and remove outdated data
      */
-    private fun filterSwarmHealthMap(): MutableMap<Sha1Hash, SwarmHealth> {
+    fun filterSwarmHealthMap(
+        musicCommunity: MusicCommunity? = IPv8Android.getInstance().getOverlay<MusicCommunity>()
+    ): MutableMap<Sha1Hash, SwarmHealth> {
         val localMap = updateLocalSwarmHealthMap()
-        val musicCommunity = IPv8Android.getInstance().getOverlay<MusicCommunity>()
         val communityMap = musicCommunity?.swarmHealthMap ?: mutableMapOf()
         // Keep the highest numPeers/numSeeds count of all items in both maps
         // This map contains all the combined data, where local and community map data are merged;
@@ -238,8 +239,9 @@ class MusicService : AppCompatActivity() {
      * future there will be logic added here to determine whether an upload was done by the correct
      * artist/label (artist passport).
      */
-    private fun registerBlockSigner() {
-        val musicCommunity = IPv8Android.getInstance().getOverlay<MusicCommunity>()
+    fun registerBlockSigner(
+        musicCommunity: MusicCommunity? = IPv8Android.getInstance().getOverlay<MusicCommunity>()
+    ) {
         musicCommunity?.registerBlockSigner(
             "publish_release",
             object : BlockSigner {

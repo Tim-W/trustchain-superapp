@@ -10,7 +10,6 @@ import androidx.fragment.app.DialogFragment
 import com.example.musicdao.MusicService
 import com.example.musicdao.R
 import com.example.musicdao.wallet.WalletService
-import java.math.BigDecimal
 
 /**
  * This dialog is shown when the user wants to send a tip to the publisher of a Release, using BTC
@@ -46,9 +45,5 @@ class TipArtistDialog(private val publicKey: String) : DialogFragment() {
             })
 
         return builder.create()
-    }
-
-    companion object {
-        val SATS_PER_BITCOIN = BigDecimal(100_000_000)
     }
 }

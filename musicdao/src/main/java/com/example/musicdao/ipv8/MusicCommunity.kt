@@ -62,22 +62,28 @@ class MusicCommunity(
      * to the original asker. If I don't, I will ask my peers to find it
      */
     private fun onKeywordSearch(packet: Packet) {
+        handleKeywordSearch(packet)
+    }
+
+    fun handleKeywordSearch(packet: Packet): Int {
         val (peer, payload) = packet.getAuthPayload(KeywordSearchMessage)
         val keyword = payload.keyword.toLowerCase(Locale.ROOT)
         val block = localKeywordSearch(keyword)
-        if (block != null) sendBlock(block, peer)
-        if (block == null) {
-            if (!payload.checkTTL()) return
-            performRemoteKeywordSearch(keyword, payload.ttl, payload.originPublicKey)
-        }
         Log.i("KeywordSearch", peer.mid + ": " + payload.keyword)
+        if (block != null) {
+            sendBlock(block, peer)
+            return 1
+        }
+        if (!payload.checkTTL()) return 0
+        performRemoteKeywordSearch(keyword, payload.ttl, payload.originPublicKey)
+        return 0
     }
 
     /**
      * Peers in the MusicCommunity iteratively gossip a few swarm health statistics of the torrents
      * they are currently tracking
      */
-    private fun onSwarmHealth(packet: Packet) {
+    fun onSwarmHealth(packet: Packet) {
         val (_, swarmHealth) = packet.getAuthPayload(SwarmHealth)
         swarmHealthMap[Sha1Hash(swarmHealth.infoHash)] = swarmHealth
         Log.d("SwarmHealth", "Received swarm health info for ${swarmHealth.infoHash}")

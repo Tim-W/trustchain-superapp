@@ -16,13 +16,21 @@ class WalletServiceTest {
         every {
             musicService.applicationContext.cacheDir
         } returns saveDir
-        // TODO this test is failing on the RegTestNet.get() call, because of an
-        //  ExceptionInInitializerError
-//        val service = WalletService(musicService)
-//        service.startup()
-//        Assert.assertEquals(
-//            1,
-//            service.app.peerGroup().connectedPeers.size
-//        )
+        // Start-up smoke test
+        val service = WalletService.getInstance(saveDir, musicService, CryptoCurrencyConfigTest.networkParams, CryptoCurrencyConfigTest.chainFileName)
+        service.start()
+
+        // Allow some time for the wallet to start-up before accessing and verifying its methods
+        Thread.sleep(2000)
+        Assert.assertEquals("RUNNING", service.app.state().name)
+        Assert.assertEquals("Status: RUNNING", service.status())
+
+        Assert.assertEquals(
+            "Current balance: 0.00 BTC (confirmed) \nCurrent balance: 0.00 BTC (estimated)",
+            service.balanceText()
+        )
+
+        Assert.assertTrue(service.publicKey().isNotEmpty())
+        Assert.assertTrue(service.publicKeyText().isNotEmpty())
     }
 }

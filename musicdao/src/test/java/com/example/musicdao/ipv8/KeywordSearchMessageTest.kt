@@ -29,7 +29,7 @@ class KeywordSearchMessageTest {
     @Test
     fun serializeAndDeserialize() {
         val serialized = payload.serialize()
-        val (deserialized, size) = com.example.musicdao.ipv8.KeywordSearchMessage.deserialize(
+        val (deserialized, size) = KeywordSearchMessage.deserialize(
             serialized
         )
         Assert.assertEquals(serialized.size, size)

@@ -13,9 +13,9 @@ import nl.tudelft.ipv8.attestation.trustchain.*
 import nl.tudelft.ipv8.attestation.trustchain.store.TrustChainSQLiteStore
 import nl.tudelft.ipv8.keyvault.JavaCryptoProvider
 import nl.tudelft.ipv8.messaging.EndpointAggregator
+import nl.tudelft.ipv8.messaging.Packet
 import nl.tudelft.ipv8.peerdiscovery.Network
 import nl.tudelft.ipv8.sqldelight.Database
-
 import org.junit.Assert
 import org.junit.Test
 import java.util.*
@@ -75,10 +75,37 @@ class MusicCommunityTest {
         crawler.crawlChain(peer, 1u)
 
         Assert.assertEquals(1, trustChainCommunity.database.getAllBlocks().size)
-
         Assert.assertNotNull(trustChainCommunity.localKeywordSearch("title"))
         Assert.assertNotNull(trustChainCommunity.localKeywordSearch("artists"))
         Assert.assertNull(trustChainCommunity.localKeywordSearch("somethingelse"))
+
+        // Testing onKeywordSearch: simulating the receival of a search message from a different
+        // peer
+        val keywordSearchPacket = trustChainCommunity.serializePacket(
+            MusicCommunity.MessageId.KEYWORD_SEARCH_MESSAGE,
+            KeywordSearchMessage(ANY_COUNTERPARTY_PK, 1.toUInt(), "title")
+        )
+        val outDatedKeywordSearchPacket = trustChainCommunity.serializePacket(
+            MusicCommunity.MessageId.KEYWORD_SEARCH_MESSAGE,
+            KeywordSearchMessage(ANY_COUNTERPARTY_PK, 0.toUInt(), "somethingelse")
+        )
+        Assert.assertEquals(
+            1,
+            trustChainCommunity.handleKeywordSearch(Packet(peer.address, keywordSearchPacket))
+        )
+        Assert.assertEquals(
+            0,
+            trustChainCommunity.handleKeywordSearch(Packet(peer.address, outDatedKeywordSearchPacket))
+        )
+
+        // Testing onSwarmHealth: simulating the receival of a swarm health message from a different
+        // peer
+        val swarmHealthPacket = trustChainCommunity.serializePacket(
+            MusicCommunity.MessageId.KEYWORD_SEARCH_MESSAGE,
+            SwarmHealth(Sha1Hash.min().toString(), 0.toUInt(), 1.toUInt())
+        )
+        // Smoke test: nothing to assert
+        trustChainCommunity.onSwarmHealth(Packet(peer.address, swarmHealthPacket))
     }
 
     @Test
@@ -92,7 +119,7 @@ class MusicCommunityTest {
         } returns listOf(neighborPeer)
 
         val count =
-            trustChainCommunity.performRemoteKeywordSearch("keyword", 1u, ANY_COUNTERPARTY_PK)
+            trustChainCommunity.performRemoteKeywordSearch("keyword")
         Assert.assertEquals(count, 1)
     }
 

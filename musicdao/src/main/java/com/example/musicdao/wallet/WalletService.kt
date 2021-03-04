@@ -2,10 +2,7 @@ package com.example.musicdao.wallet
 
 import android.widget.Toast
 import com.example.musicdao.MusicService
-import org.bitcoinj.core.Address
-import org.bitcoinj.core.Coin
-import org.bitcoinj.core.ECKey
-import org.bitcoinj.core.PeerAddress
+import org.bitcoinj.core.*
 import org.bitcoinj.core.listeners.DownloadProgressTracker
 import org.bitcoinj.kits.WalletAppKit
 import org.bitcoinj.params.RegTestParams
@@ -24,11 +21,10 @@ import java.util.*
 /**
  * Interaction with a BitcoinJ wallet
  */
-class WalletService(val walletDir: File, private val musicService: MusicService) {
+class WalletService(val walletDir: File, private val musicService: MusicService, private val params: NetworkParameters, private val filePrefix: String
+) {
     val app: WalletAppKit
     private val bitcoinFaucetEndpoint = "http://134.122.59.107:3000"
-    private val params = CryptoCurrencyConfig.networkParams
-    private val filePrefix = CryptoCurrencyConfig.chainFileName
     private var started = false
     var percentageSynced = 0
 
@@ -183,10 +179,10 @@ class WalletService(val walletDir: File, private val musicService: MusicService)
         /**
          * Singleton pattern for WalletService
          */
-        fun getInstance(walletDir: File, musicService: MusicService): WalletService {
+        fun getInstance(walletDir: File, musicService: MusicService, params: NetworkParameters = CryptoCurrencyConfig.networkParams, filePrefix: String = CryptoCurrencyConfig.chainFileName): WalletService {
             val instance = walletService
             if (instance is WalletService) return instance
-            val newInstance = WalletService(walletDir, musicService)
+            val newInstance = WalletService(walletDir, musicService, params, filePrefix)
             walletService = newInstance
             return newInstance
         }

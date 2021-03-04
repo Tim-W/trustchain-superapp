@@ -59,4 +59,11 @@ class ContentSeederTest {
         contentSeeder.updateSwarmHealth(torrentHandle)
         Assert.assertEquals(contentSeeder.swarmHealthMap.size, 1)
     }
+
+    @Test
+    fun downloadAndSeed() {
+        val torrentFile = File("./src/test/resources/RFBMP.torrent")
+
+        contentSeeder.downloadAndSeed(TorrentInfo(torrentFile))
+    }
 }

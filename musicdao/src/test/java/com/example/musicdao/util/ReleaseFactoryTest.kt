@@ -13,12 +13,17 @@ class ReleaseFactoryTest {
     fun uriListFromLocalFiles() {
         val intent = mockk<Intent>()
         val uri = mockk<Uri>()
+
         every { intent.data } returns uri
         every { intent.clipData } returns null
         val list = ReleaseFactory.uriListFromLocalFiles(intent)
         Assert.assertEquals(1, list.size)
 
-        every { intent.clipData } returns ClipData.newRawUri("a", uri)
+        val cd = ClipData.newRawUri("a", uri)
+        every {
+            intent.clipData
+        } returns cd
+
         val list2 = ReleaseFactory.uriListFromLocalFiles(intent)
         Assert.assertEquals(1, list2.size)
     }

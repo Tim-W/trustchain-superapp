@@ -1,7 +1,13 @@
 package com.example.musicdao.util
 
+import com.frostwire.jlibtorrent.Priority
 import com.frostwire.jlibtorrent.Sha1Hash
+import com.frostwire.jlibtorrent.TorrentHandle
 import com.frostwire.jlibtorrent.TorrentInfo
+import com.mpatric.mp3agic.InvalidDataException
+import com.mpatric.mp3agic.Mp3File
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.Assert
 import org.junit.Test
 import java.io.File
@@ -50,37 +56,101 @@ class UtilTest {
     }
 
     @Test
-    fun checkAndSanitizeTrackNames() {
-//        val fileName = "Valid_File-Name.mp3"
-//        val fileName2 = "invalid-File.txt"
-//        Assert.assertEquals(
-//            "Valid File-Name",
-//            Util.getTitle(fileName)
-//        )
-//        Assert.assertNull(Util.getTitle(fileName2)) TODO
+    fun setSequentialPriorities() {
+        val torrentFile = this.javaClass.getResource("/RFBMP.torrent")?.path
+        Assert.assertNotNull(torrentFile)
+        if (torrentFile == null) return
+        Assert.assertNotNull(File(torrentFile))
+        val torrentInfo = TorrentInfo(File(torrentFile))
+
+        val priorities: Array<Priority> = arrayOf(
+            Priority.SEVEN,
+            Priority.SEVEN,
+            Priority.SEVEN,
+            Priority.NORMAL,
+            Priority.IGNORE,
+            Priority.NORMAL
+            )
+        val torrent = mockk<TorrentHandle>()
+        every { torrent.torrentFile() } returns torrentInfo
+        every { torrent.piecePriorities() } returns priorities
+        val expectedPriorites: Array<Priority> = arrayOf(
+            Priority.SIX,
+            Priority.SIX,
+            Priority.SIX,
+            Priority.SIX,
+            Priority.SIX,
+            Priority.NORMAL
+        )
+        val answer = Util.setTorrentPriorities(torrent, onlyCalculating = true)
+        Assert.assertArrayEquals(expectedPriorites, answer)
     }
 
     @Test
-    fun setSequentialPriorities() {
-//        val priorities: Array<Priority> = arrayOf( TODO
-//            Priority.SEVEN,
-//            Priority.SEVEN,
-//            Priority.SEVEN,
-//            Priority.NORMAL,
-//            Priority.IGNORE
-//        )
-//        val torrent = mockk<Torrent>()
-//        every { torrent.torrentHandle.piecePriorities() } returns priorities
-//        every { torrent.interestedPieceIndex } returns 1
-//        every { torrent.piecesToPrepare } returns 2
-//        val expectedPriorites: Array<Priority> = arrayOf(
-//            Priority.SIX,
-//            Priority.SEVEN,
-//            Priority.SEVEN,
-//            Priority.FIVE,
-//            Priority.NORMAL
-//        )
-//        val answer = Util.setSequentialPriorities(torrent, onlyCalculating = true)
-//        Assert.assertArrayEquals(expectedPriorites, answer)
+    fun findCoverArt() {
+        Assert.assertNotNull(Util.findCoverArt(File("./src/test/resources"), true))
+        Assert.assertNotNull(Util.findCoverArt(File("./src/test/resources/Royalty Free Background Music Pack"), true))
+        Assert.assertNotNull(Util.findCoverArt(File("./src/test/resources/album"), true))
+        Assert.assertNull(Util.findCoverArt(File("./src/test/resources/empty"), true))
+    }
+
+    @Test
+    fun calculateDownloadProgress() {
+        val progress = 10L
+        val fileSize = 100L
+        Assert.assertEquals(
+            10,
+            Util.calculateDownloadProgress(progress, fileSize)
+        )
+    }
+
+    @Test
+    fun trackMetadata() {
+        val input = "Some-title.mp3"
+        Assert.assertEquals(
+            "title",
+            Util.checkAndSanitizeTrackNames(input)
+        )
+
+        Assert.assertNull(
+            Util.checkAndSanitizeTrackNames("invalid")
+        )
+
+        Assert.assertEquals(
+            "DC10",
+            Util.getTitle(Mp3File("./src/test/resources/Acoustic.mp3"))
+        )
+
+        Assert.assertEquals(
+            "Aching",
+            Util.getTitle(Mp3File("./src/test/resources/Alles-Aching.mp3"))
+        )
+    }
+
+    @Test(expected = InvalidDataException::class)
+    fun trackMetadataException() {
+        Util.getTitle(Mp3File("./src/test/resources/RFBMP.torrent"))
+    }
+
+    @Test
+    fun isTorrentCompleted() {
+        Assert.assertFalse(
+            Util.isTorrentCompleted(TorrentInfo(File("./src/test/resources/RFBMP.torrent")), File("./src/test/resources"))
+        )
+    }
+
+    @Test
+    fun addTrackersToMagnet() {
+        val original = "asdf"
+        val changedMagnet = Util.addTrackersToMagnet(original)
+        Assert.assertTrue(changedMagnet.length > original.length)
+    }
+
+    @Test
+    fun sanitizeString() {
+        Assert.assertEquals(
+            "Hello world",
+            Util.sanitizeString("Hello%20world")
+        )
     }
 }

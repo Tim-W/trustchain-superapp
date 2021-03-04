@@ -15,7 +15,8 @@ import kotlin.system.exitProcess
  * This is a service that runs in the background, also when the Android app is closed. It gossips
  * data about Release blocks and swarm health with a few random peers every couple seconds
  */
-class MusicGossipingService :
+class MusicGossipingService(private val musicCommunity: MusicCommunity? = IPv8Android.getInstance().getOverlay<MusicCommunity>()
+) :
     Service() {
     private var swarmHealthMap: Map<Sha1Hash, SwarmHealth> = mutableMapOf()
     private val gossipTopTorrents = 5
@@ -65,8 +66,7 @@ class MusicGossipingService :
     /**
      * This is a very simplistic way to crawl all chains from the peers you know
      */
-    private suspend fun iterativelySendReleaseBlocks() {
-        val musicCommunity = IPv8Android.getInstance().getOverlay<MusicCommunity>()
+    suspend fun iterativelySendReleaseBlocks() {
         while (scope.isActive) {
             musicCommunity?.communicateReleaseBlocks()
             delay(4000)
@@ -76,29 +76,34 @@ class MusicGossipingService :
     /**
      * Every couple of seconds, gossip swarm health with other peers
      */
-    private suspend fun iterativelyGossipSwarmHealth() {
+    suspend fun iterativelyGossipSwarmHealth() {
         while (scope.isActive) {
-            // Pick 5 of the most popular torrents and 5 random torrents, and send those stats to any neighbour
-            // First, we sort the map based on swarm health
-            val sortedMap = swarmHealthMap.toList()
-                .sortedBy { (_, value) -> value }
-                .toMap()
-            gossipSwarmHealth(sortedMap, gossipTopTorrents)
-            gossipSwarmHealth(swarmHealthMap, gossipRandomTorrents)
+            sortAndGossip()
             delay(4000)
         }
+    }
+
+    fun sortAndGossip(): Map<Sha1Hash, SwarmHealth> {
+        // Pick 5 of the most popular torrents and 5 random torrents, and send those stats to any neighbour
+        // First, we sort the map based on swarm health
+        val sortedMap = swarmHealthMap.toList()
+            .sortedBy { (_, value) -> value }
+            .toMap()
+        gossipSwarmHealth(sortedMap, gossipTopTorrents)
+        gossipSwarmHealth(swarmHealthMap, gossipRandomTorrents)
+        return sortedMap
     }
 
     /**
      * Send SwarmHealth information to #maxIterations random peers
      */
-    private fun gossipSwarmHealth(map: Map<Sha1Hash, SwarmHealth>, maxInterations: Int) {
-        val musicCommunity = IPv8Android.getInstance().getOverlay<MusicCommunity>()
+    fun gossipSwarmHealth(map: Map<Sha1Hash, SwarmHealth>, maxInterations: Int): Int {
         var count = 0
         for (entry in map.entries) {
             if (count > maxInterations) break
             musicCommunity?.sendSwarmHealthMessage(entry.value)
             count += 1
         }
+        return count
     }
 }

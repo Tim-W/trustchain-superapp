@@ -48,18 +48,6 @@ object Util {
         return pieceIndex
     }
 
-    fun calculateLastPieceIndex(fileIndex: Int, torrentInfo: TorrentInfo): Int {
-        var pieceIndex = 0
-        for (i in 0..fileIndex) {
-            var fullSize = torrentInfo.files().fileSize(i)
-            while (fullSize > 1) {
-                fullSize -= torrentInfo.pieceSize(pieceIndex)
-                pieceIndex += 1
-            }
-        }
-        return pieceIndex
-    }
-
     /**
      * Converts bytes into a string that shows it in a readable format
      */
@@ -104,13 +92,14 @@ object Util {
             }
         }
 
-        if (onlyCalculating) return piecePriorities // For making unit test possible
-        for ((index, priority) in piecePriorities.withIndex()) {
-            torrentHandle.piecePriority(index, priority)
-        }
-        // Set file priority high of the currently selected track
-        if (torrentHandle.filePriorities().indices.contains(fileIndex)) {
-            torrentHandle.filePriority(fileIndex, Priority.SIX)
+        if (!onlyCalculating) {
+            for ((index, priority) in piecePriorities.withIndex()) {
+                torrentHandle.piecePriority(index, priority)
+            }
+            // Set file priority high of the currently selected track
+            if (torrentHandle.filePriorities().indices.contains(fileIndex)) {
+                torrentHandle.filePriority(fileIndex, Priority.SIX)
+            }
         }
         return piecePriorities
     }
@@ -176,7 +165,7 @@ object Util {
      * @param directory the directory containing music files, possibly cover art and possibly other
      * files
      */
-    fun findCoverArt(directory: File): File? {
+    fun findCoverArt(directory: File, onlyCalculating: Boolean = false): File? {
         if (!directory.isDirectory) return null
         val allowedExtensions =
             listOf(".jpg", ".png")
@@ -198,10 +187,12 @@ object Util {
                 val bmp = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
                 // Once a valid BMP is found, save this bitmap to a PNG file named cover.png
                 val coverFile = File(directory.path + "/cover.png")
-                val fOut = FileOutputStream(coverFile)
-                bmp.compress(Bitmap.CompressFormat.PNG, 85, fOut)
-                fOut.flush()
-                fOut.close()
+                if (!onlyCalculating) {
+                    val fOut = FileOutputStream(coverFile)
+                    bmp.compress(Bitmap.CompressFormat.PNG, 85, fOut)
+                    fOut.flush()
+                    fOut.close()
+                }
                 return coverFile
             } catch (e: Exception) {
             }

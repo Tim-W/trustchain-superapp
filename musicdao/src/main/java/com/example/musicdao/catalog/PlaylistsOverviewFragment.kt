@@ -10,13 +10,14 @@ import com.example.musicdao.MusicBaseFragment
 import com.example.musicdao.MusicService
 import com.example.musicdao.R
 import com.example.musicdao.dialog.SubmitReleaseDialog
+import com.example.musicdao.ipv8.MusicCommunity
+import com.example.musicdao.ipv8.SwarmHealth
 import com.example.musicdao.util.Util
 import com.example.musicdao.wallet.WalletService
 import com.frostwire.jlibtorrent.Sha1Hash
 import kotlinx.android.synthetic.main.fragment_release_overview.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import nl.tudelft.ipv8.android.IPv8Android
 import nl.tudelft.ipv8.attestation.trustchain.TrustChainBlock
 import java.io.File
 
@@ -42,9 +43,7 @@ class PlaylistsOverviewFragment : MusicBaseFragment(R.layout.fragment_release_ov
             setHasOptionsMenu(true)
         }
 
-        lastReleaseBlocksSize = -1
-        lastSwarmHealthMapSize = -1
-        releaseRefreshCount = 0
+        resetState()
 
         lifecycleScope.launchWhenCreated {
             while (isActive && isAdded && !isDetached) {
@@ -66,6 +65,12 @@ class PlaylistsOverviewFragment : MusicBaseFragment(R.layout.fragment_release_ov
         addPlaylistFab.setOnClickListener {
             showCreateReleaseDialog()
         }
+    }
+
+    private fun resetState() {
+        lastReleaseBlocksSize = -1
+        lastSwarmHealthMapSize = -1
+        releaseRefreshCount = 0
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -93,10 +98,10 @@ class PlaylistsOverviewFragment : MusicBaseFragment(R.layout.fragment_release_ov
      * List all the releases that are currently loaded in the local trustchain database. If keyword
      * search is enabled (searchQuery variable is set) then it also filters the database
      */
-    private fun showAllReleases() {
-        val swarmHealthMap = (activity as MusicService).swarmHealthMap
+    fun showAllReleases(swarmHealthMap: Map<Sha1Hash, SwarmHealth> = (activity as MusicService).swarmHealthMap, musicCommunity: MusicCommunity = getMusicCommunity()
+    ) {
         val releaseDataMap = mutableMapOf<TrustChainBlock, Int>()
-        val releaseBlocks = getMusicCommunity().database.getBlocksWithType("publish_release")
+        val releaseBlocks = musicCommunity.database.getBlocksWithType("publish_release")
         if (releaseBlocks.size == lastReleaseBlocksSize &&
             swarmHealthMap.size == lastSwarmHealthMapSize
         ) {
@@ -190,9 +195,10 @@ class PlaylistsOverviewFragment : MusicBaseFragment(R.layout.fragment_release_ov
         title: String,
         artists: String,
         releaseDate: String,
-        torrentInfoName: String
-    ) {
-        val myPeer = IPv8Android.getInstance().myPeer
+        torrentInfoName: String,
+        musicCommunity: MusicCommunity = getMusicCommunity()
+    ): Boolean {
+        val myPeer = musicCommunity.myPeer
         val transaction = mutableMapOf<String, String>(
             "magnet" to magnet,
             "title" to title,
@@ -205,7 +211,7 @@ class PlaylistsOverviewFragment : MusicBaseFragment(R.layout.fragment_release_ov
             val musicWallet = WalletService.getInstance(walletDir, (activity as MusicService))
             transaction["publisher"] = musicWallet.publicKey()
         }
-        val trustchain = getMusicCommunity()
-        trustchain.createProposalBlock("publish_release", transaction, myPeer.publicKey.keyToBin())
+        musicCommunity.createProposalBlock("publish_release", transaction, myPeer.publicKey.keyToBin())
+        return true
     }
 }
